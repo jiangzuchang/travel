@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>黑马旅游-搜索</title>
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" href="css/search.css">
+    <script src="js/jquery-1.11.0.js"></script>
+    <script src="js/jquery.cookie.js"></script>
+    <script>
+        function gotoPage(cid, currentPage, keyWord) {
+            //定义父标签对象
+            var changePage = $("#changePage");
+            //先清掉changePage下的所有内容
+            changePage.empty();
+            //指定每页显示的条目数量
+            var pageSize = 8;
+            //发送ajax请求
+            $.post("route/getRouteList", {
+                "cid": cid,
+                "pageSize": pageSize,
+                "currentPage": currentPage,
+                "keyWord": keyWord
+            }, function (result) {//设定回调函数
+                // $('#searchText').html(keyWord);
+                //设置总条目数和总页数
+                $("#totalCount").text(result.totalCount);
+                $("#totalPage").text(result.totalPage);
+                //设置翻页按钮
+                //首页、上一页
+                changePage.append("<li><a href=\"\">首页</a></li>\n" +
+                    "<li class='threeword' onclick='javascript:$(\"#show\").empty();" +
+                    "gotoPage(" + cid + ","
+                    + ((currentPage - 1) < 1 ? 1 : (currentPage - 1)) + ",\""
+                    + keyWord + "\");" +
+                    "'><a href='javascript:void(0);'>上一页</a></li>");
+                //定义起始页和末尾页
+                var startIndex = 1;
+                var endIndex = result.totalPage;
+                //初始化页面
+                if (currentPage < 5) {
+                    //前不足
+                    if (endIndex > 10) {
+                        //总数据足够
+                        endIndex = 10;
+                    }
+                } else if (currentPage >= 5 && currentPage <= result.totalPage - 5) {
+                    //前后充足
+                    startIndex = currentPage - 4;
+                    endIndex = currentPage + 5;
+                } else {
+                    //后不足
+                    startIndex = endIndex - 9;
+                }
+                //添加页码按钮
+                for (var i = startIndex; i <= endIndex; i++) {
+                    //这里要判断页码，来选择性地显示页码
+                    if (currentPage === i) {
+                        //添加选中样式
+                        changePage.append("<li class='curPage' onclick='javascript:" +
+                            "$(\"#show\").empty();" +
+                            "gotoPage(" + cid + "," + i + ",\"" + keyWord + "\");" +
+                            "'><a href='javascript:void(0);'>" + i + "</a></li>");
+                    } else {
+                        changePage.append("<li onclick='javascript:" +
+                            "$(\"#show\").empty();" +
+                            "gotoPage(" + cid + "," + i + ",\"" + keyWord + "\");" +
+                            "'><a href='javascript:void(0);'>" + i + "</a></li>");
+                    }
+                }
+                //下一页
+                changePage.append("<li class='threeword' onclick='javascript:" +
+                    "$(\"#show\").empty();" +
+                    "gotoPage(" + cid + "," + ((currentPage + 1) > (result.totalPage) ?
+                        (result.totalPage) : (currentPage + 1)) + ",\"" + keyWord + "\");" +
+                    "'><a href='javascript:void(0);'>下一页</a></li>");
+                //末页
+                changePage.append("<li class='threeword' onclick='javascript:" +
+                    "$(\"#show\").empty();" +
+                    "gotoPage(" + cid + ",\"" + (result.totalPage) + "\",\"" + keyWord + "\");" +
+                    "'><a href='javascript:void(0);'>末页</a></li>");
+
+
+                //设置当前页的显示
+                for (var i = 0; i < pageSize; i++) {
+                    $("#show").append("<li>\n" +
+                        "<div class='img'><img src='" + (result.list[i].rimage) +
+                        "' style='width:299px' alt=''></div>\n" +
+                        "<div class='text1'>\n" +
+                        "<p>" + (result.list[i].rname) + "</p>\n" +
+                        // "<br/>\n" +
+                        "<p>" + (result.list[i].routeIntroduce) + "</p>\n" +
+                        "</div>\n" +
+                        "<div class='price'>\n" +
+                        "<p class='price_num'>\n" +
+                        "<span>&yen;</span>\n" +
+                        "<span>" + (result.list[i].price) + "</span>\n" +
+                        "<span>起</span>\n" +
+                        "</p>\n" +
+                        "<p><a href='route_detail.html?rid="+result.list[i].rid+"'>查看详情</a></p>\n" +
+                        "</div>\n" +
+                        "</li>");
+                }
+            });
+        }
+
+        $(function () {
+            var keyWord;
+            var cid;
+            var search = window.location.search;
+            //search参数分离(双变量解析器)
+            if (search.indexOf("cid=") !== -1) {  //以cid值为基础的搜索
+                var sp = search.split("&keyWord=");
+                if (sp.length > 1) {
+                    keyWord = decodeURI(sp[1]);
+                    cid = sp[0].split("=")[1];
+                } else {
+                    cid = search.split("=")[1];
+                    keyWord = "";
+                }
+            } else {    //在主页的搜索
+                keyWord = decodeURI(search.split("=")[1]);
+                cid = null;
+            }
+
+            //默认当前页为第一页
+            var currentPage = 1;
+            //展示查询结果
+            gotoPage(cid, currentPage, keyWord);
+        })
+    </script>
+</head>
+<body>
+<!--引入头部-->
+<div id="header"></div>
+<div class="page_one">
+    <div class="contant">
+        <div class="crumbs">
+            <img src="images/search.png" alt="">
+            <p>黑马旅行><span>搜索结果</span></p>
+        </div>
+        <div class="xinxi clearfix">
+            <div class="left">
+                <div class="header">
+                    <span>商品信息</span>
+                    <span class="jg">价格</span>
+                </div>
+                <ul id="show">
+                    <!--<li>-->
+                    <!--    <div class="img"><img src="images/04-search_03.jpg" alt=""></div>-->
+                    <!--    <div class="text1">-->
+                    <!--        <p>【减100元 含除夕/春节出发】广州增城三英温泉度假酒店/自由行套票</p>-->
+                    <!--        <br/>-->
+                    <!--        <p>1-2月出发，网付立享￥1099/2人起！爆款位置有限，抢完即止！</p>-->
+                    <!--    </div>-->
+                    <!--    <div class="price">-->
+                    <!--        <p class="price_num">-->
+                    <!--            <span>&yen;</span>-->
+                    <!--            <span>299</span>-->
+                    <!--            <span>起</span>-->
+                    <!--        </p>-->
+                    <!--        <p><a href="route_detail.html">查看详情</a></p>-->
+                    <!--    </div>-->
+                    <!--</li>-->
+                </ul>
+                <div class="page_num_inf">
+                    <i></i> 共
+                    <span id="totalPage"></span>页<span id="totalCount"></span>条
+                </div>
+                <div class="pageNum">
+                    <ul id="changePage">
+                        <!--<li><a href="">首页</a></li>-->
+                        <!--<li class="threeword"><a href="javascript:">上一页</a></li>-->
+                        <!--<li><a href="#">1</a></li>-->
+                        <!--<li><a href="#">2</a></li>-->
+                        <!--<li><a href="#">3</a></li>-->
+                        <!--<li><a href="#">4</a></li>-->
+                        <!--<li><a href="#">5</a></li>-->
+                        <!--<li><a href="#">6</a></li>-->
+                        <!--<li><a href="#">7</a></li>-->
+                        <!--<li><a href="#">8</a></li>-->
+                        <!--<li><a href="#">9</a></li>-->
+                        <!--<li><a href="#">10</a></li>-->
+                        <!--<li id="nextPage" class="threeword"><a href="javascript:;">下一页</a></li>-->
+                        <!--<li class="threeword"><a href="javascript:;">末页</a></li>-->
+                    </ul>
+                </div>
+            </div>
+            <div class="right">
+                <div class="top">
+                    <div class="hot">HOT</div>
+                    <span>热门推荐</span>
+                </div>
+                <ul>
+                    <li>
+                        <div class="left"><img src="images/04-search_09.jpg" alt=""></div>
+                        <div class="right">
+                            <p>清远新银盏温泉度假村酒店/自由行套...</p>
+                            <p>网付价<span>&yen;<span>899</span>起</span>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="left"><img src="images/04-search_09.jpg" alt=""></div>
+                        <div class="right">
+                            <p>清远新银盏温泉度假村酒店/自由行套...</p>
+                            <p>网付价<span>&yen;<span>899</span>起</span>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="left"><img src="images/04-search_09.jpg" alt=""></div>
+                        <div class="right">
+                            <p>清远新银盏温泉度假村酒店/自由行套...</p>
+                            <p>网付价<span>&yen;<span>899</span>起</span>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="left"><img src="images/04-search_09.jpg" alt=""></div>
+                        <div class="right">
+                            <p>清远新银盏温泉度假村酒店/自由行套...</p>
+                            <p>网付价<span>&yen;<span>899</span>起</span>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="left"><img src="images/04-search_09.jpg" alt=""></div>
+                        <div class="right">
+                            <p>清远新银盏温泉度假村酒店/自由行套...</p>
+                            <p>网付价<span>&yen;<span>899</span>起</span>
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--引入头部-->
+<div id="footer"></div>
+<!--导入布局js，共享header和footer-->
+<script type="text/javascript" src="js/include.js"></script>
+</body>
+
+</html>

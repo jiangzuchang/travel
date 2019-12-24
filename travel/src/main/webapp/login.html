@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>黑马旅游网-登录</title>
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/login.css">
+
+    <!--导入jquery-->
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <style>
+        #btn-submit {
+            width: 120px;
+            height: 36px;
+            line-height: 36px;
+            background-color: #ffc900;
+            font-size: 14px;
+        }
+    </style>
+    <script>
+
+        //图片点击事件
+        function changeCheckCode() {
+            $("#checkCodeImg")[0].src = "user/checkCode?" + new Date().getTime();
+        }
+
+        //校验用户名
+        function checkUsername() {
+            var $username = $("#username");
+            var reg = /^\w{8,20}$/;
+            var flag = reg.test($username.val());
+            if (flag) {
+                $username.css("border", "");
+            } else {
+                $username.css("border", "1px solid red");
+            }
+            return flag;
+        }
+
+        //校验密码
+        function checkPassword() {
+            var $password = $("#password");
+            var reg = /^\w{8,20}$/;
+            var flag = reg.test($password.val());
+            if (flag) {
+                $password.css("border", "");
+            } else {
+                $password.css("border", "1px solid red");
+            }
+            return flag;
+        }
+
+        //校验验证码
+        function checkCheckCode() {
+            var $checkCheckCode = $("#checkCheckCode");
+            var flag = ($checkCheckCode.val() == null || $checkCheckCode.val().contains(" "));
+            if (flag) {
+                $checkCheckCode.css("border", "");
+            } else {
+                $checkCheckCode.css("border", "1px solid red");
+            }
+            return flag;
+        }
+
+        function call(data) {
+            if (data.flag) {
+                //登录成功
+                window.location.href = "index.html";
+            } else {
+                //登录错误
+                changeCheckCode();
+                $("#errorMsg").html(data.errorMsg);
+            }
+        }
+
+        $(function () {
+            //测试用
+            // $("#checkbox").click(function () {
+            //    alert($("#loginForm").serialize());
+            // });
+            //事件添加
+            $("#username").blur(checkUsername);
+            $("#password").blur(checkPassword);
+            $("#check").blur(checkCheckCode);
+
+            //表单提交
+            $("#loginForm").submit(function () {
+                if (checkUsername() && checkPassword()) {
+                    $.ajax({
+                        url: "user/userLogin",
+                        data: $("#loginForm").serialize(),
+                        type: "GET",
+                        success: call
+                    });
+                }
+                return false;
+            });
+        });
+
+    </script>
+</head>
+
+<body>
+<!--引入头部-->
+<div id="header"></div>
+<!-- 头部 end -->
+<section id="login_wrap">
+    <div class="fullscreen-bg" style="background: url(images/login_bg.png);height: 532px;">
+
+    </div>
+    <div class="login-box">
+        <div class="title">
+            <img src="images/login_logo.png" alt="">
+            <span>欢迎登录黑马旅游账户</span>
+        </div>
+        <div class="login_inner">
+
+            <!--登录错误提示消息-->
+            <div id="errorMsg" class="alert alert-danger"></div>
+            <form id="loginForm" accept-charset="utf-8">
+                <input type="hidden" name="action" value="login"/>
+                <input id="username" name="username" type="text" placeholder="请输入账号" autocomplete="off">
+                <input id="password" name="password" type="text" placeholder="请输入密码" autocomplete="off">
+                <div class="verify">
+                    <input id="check" name="check" type="text" placeholder="请输入验证码" autocomplete="off">
+                    <span><img id="checkCodeImg" src="user/checkCode" alt="" onclick="changeCheckCode()"></span>
+                </div>
+                <div class="submit_btn">
+                    <br>
+                    <input id="btn-submit" type="submit" value="登录">
+                    <div class="auto_login">
+                        <input type="checkbox" id="checkbox" name="" class="checkbox">
+                        <span>自动登录</span>
+                    </div>
+                </div>
+            </form>
+            <div class="reg">没有账户？<a href="javascript:;">立即注册</a></div>
+        </div>
+    </div>
+</section>
+<!--引入尾部-->
+<div id="footer"></div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="js/jquery-1.11.0.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="js/bootstrap.min.js"></script>
+<!--导入布局js，共享header和footer-->
+<script type="text/javascript" src="js/include.js"></script>
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]-->
+<script src="//cdn.bootcss.com/respond.js/1.4.2/respond.js"></script>
+<script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+<!--[endif]-->
+<!--导入angularJS文件-->
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+</body>
+
+</html>
